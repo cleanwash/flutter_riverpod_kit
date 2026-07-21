@@ -2,6 +2,7 @@ import 'package:flutter_riverpod_kit/flutter_riverpod_kit.dart';
 
 import '../../di/providers.dart';
 import '../../domain/use_case/get_photos_use_case.dart';
+import 'home_action.dart';
 import 'home_state.dart';
 import 'home_ui_event.dart';
 
@@ -19,7 +20,16 @@ class HomeViewModel extends Notifier<HomeState> with UiEventEmitter<HomeUiEvent>
     return const HomeState();
   }
 
-  Future<void> search(String query) async {
+  /// Single entry point for every user-triggered action. Dispatch with a
+  /// `switch` over the sealed [HomeAction] so new cases can't be missed.
+  void onAction(HomeAction action) {
+    switch (action) {
+      case Search(:final query):
+        _search(query);
+    }
+  }
+
+  Future<void> _search(String query) async {
     state = state.copyWith(isLoading: true);
 
     switch (await _getPhotosUseCase(query)) {

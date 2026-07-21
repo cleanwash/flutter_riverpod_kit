@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod_kit/flutter_riverpod_kit.dart';
 
 import 'components/photo_widget.dart';
+import 'home_action.dart';
 import 'home_ui_event.dart';
 import 'home_view_model.dart';
 
@@ -21,7 +22,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void initState() {
     super.initState();
     _subscription = ref.read(homeViewModelProvider.notifier).uiEvent.listen(_handleEvent);
-    Future.microtask(() => ref.read(homeViewModelProvider.notifier).search('flutter'));
+    Future.microtask(
+      () => ref.read(homeViewModelProvider.notifier).onAction(const Search('flutter')),
+    );
   }
 
   void _handleEvent(HomeUiEvent event) {
@@ -43,7 +46,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final state = ref.watch(homeViewModelProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('flutter_riverpod_kit example')),
+      appBar: AppBar(
+        title: const Text('flutter_riverpod_kit example'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () => ref
+                .read(homeViewModelProvider.notifier)
+                .onAction(const Search('flutter')),
+          ),
+        ],
+      ),
       body: state.isLoading
           ? const Center(child: CircularProgressIndicator())
           : GridView.builder(

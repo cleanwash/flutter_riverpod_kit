@@ -40,10 +40,11 @@ lib/
     home/
       components/
         photo_widget.dart         # home 전용 위젯
-      home_screen.dart            # ref.watch(homeViewModelProvider)로 상태를 읽음
+      home_screen.dart            # ref.watch(homeViewModelProvider)로 상태를 읽고, onAction(Action)으로 이벤트 전달
+      home_action.dart            # 화면에서 발생 가능한 모든 사용자 액션 (sealed)
       home_state.dart             # 화면이 매번 읽는 상태
       home_ui_event.dart          # 스낵바/네비게이션 같은 1회성 이벤트
-      home_view_model.dart        # Notifier<HomeState> + UiEventEmitter<HomeUiEvent>
+      home_view_model.dart        # Notifier<HomeState> + UiEventEmitter<HomeUiEvent>, 단일 진입점 onAction(Action)
   di/
     providers.dart                # riverpod Provider 그래프 (DI)
   main.dart
@@ -76,7 +77,14 @@ class HomeViewModel extends Notifier<HomeState> with UiEventEmitter<HomeUiEvent>
     return const HomeState();
   }
 
-  Future<void> search(String query) async {
+  void onAction(HomeAction action) {
+    switch (action) {
+      case Search(:final query):
+        _search(query);
+    }
+  }
+
+  Future<void> _search(String query) async {
     state = state.copyWith(isLoading: true);
     switch (await _getPhotosUseCase(query)) {
       case Success(:final data):
@@ -92,7 +100,10 @@ class HomeViewModel extends Notifier<HomeState> with UiEventEmitter<HomeUiEvent>
 ```dart
 // screen
 final state = ref.watch(homeViewModelProvider);
+ref.read(homeViewModelProvider.notifier).onAction(const Search('flutter'));
 ```
+
+`onAction`은 이 예제 코드의 컨벤션입니다 (riverpod의 `Notifier`가 이미 `state` get/set을 제공하므로, 패키지 차원에서 별도 base class를 강제하지 않습니다). 화면에서 상태를 바꾸고 싶을 때는 개별 public 메서드를 늘리지 않고, `onAction(Action)` 하나만 호출하는 컨벤션을 유지하세요.
 
 전체 동작은 [`example/`](example)를 참고하세요.
 

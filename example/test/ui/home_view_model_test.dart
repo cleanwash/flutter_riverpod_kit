@@ -1,6 +1,7 @@
 import 'package:example/di/providers.dart';
 import 'package:example/domain/model/photo.dart';
 import 'package:example/domain/repository/photo_repository.dart';
+import 'package:example/presentation/home/home_action.dart';
 import 'package:example/presentation/home/home_ui_event.dart';
 import 'package:example/presentation/home/home_view_model.dart';
 import 'package:flutter_riverpod_kit/flutter_riverpod_kit.dart';
@@ -17,7 +18,7 @@ class _FakePhotoRepository implements PhotoRepository {
 }
 
 void main() {
-  test('search populates photos on success', () async {
+  test('Search action populates photos on success', () async {
     const photos = [Photo(id: 1, imageUrl: 'url', tags: 'cat')];
     final container = ProviderContainer(
       overrides: [
@@ -28,13 +29,14 @@ void main() {
     );
     addTearDown(container.dispose);
 
-    await container.read(homeViewModelProvider.notifier).search('cat');
+    container.read(homeViewModelProvider.notifier).onAction(const Search('cat'));
+    await Future<void>.delayed(Duration.zero);
 
     expect(container.read(homeViewModelProvider).photos, photos);
     expect(container.read(homeViewModelProvider).isLoading, isFalse);
   });
 
-  test('search emits ShowErrorSnackBar on failure', () async {
+  test('Search action emits ShowErrorSnackBar on failure', () async {
     final container = ProviderContainer(
       overrides: [
         photoRepositoryProvider.overrideWithValue(
@@ -47,7 +49,7 @@ void main() {
     final events = <HomeUiEvent>[];
     container.read(homeViewModelProvider.notifier).uiEvent.listen(events.add);
 
-    await container.read(homeViewModelProvider.notifier).search('cat');
+    container.read(homeViewModelProvider.notifier).onAction(const Search('cat'));
     await Future<void>.delayed(Duration.zero);
 
     expect(container.read(homeViewModelProvider).isLoading, isFalse);
