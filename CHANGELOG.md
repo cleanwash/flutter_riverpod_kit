@@ -1,3 +1,7 @@
+## 0.0.2
+
+* 라이브러리 진입점(`lib/flutter_riverpod_kit.dart`)에 dartdoc과 함께 `library;` 지시문 추가.
+
 ## 0.0.1
 
 * 초기 릴리스: `Result`, `UseCase`, `UiEventEmitter<E>` 추가. `flutter_basic_kit_library`, `flutter_riverpod` 의존성 구성.
