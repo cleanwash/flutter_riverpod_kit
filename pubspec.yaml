@@ -1,6 +1,6 @@
 name: flutter_riverpod_kit
 description: "A flutter_riverpod-based architecture (ref.watch, Result, UseCase, UiEventEmitter) and recommended folder structure, extending flutter_basic_kit_library."
-version: 0.0.2
+version: 0.0.3
 homepage: "https://github.com/cleanwash/flutter_riverpod_kit"
 repository: "https://github.com/cleanwash/flutter_riverpod_kit"
 
