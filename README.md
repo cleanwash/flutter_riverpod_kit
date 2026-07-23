@@ -17,30 +17,45 @@ Screens don't need a wrapper widget — read state the standard riverpod way, wi
 
 ```yaml
 dependencies:
-  flutter_riverpod_kit: ^0.0.1
+  flutter_riverpod_kit: ^0.0.4
 ```
 
-## Scaffold the structure
+> ⚠️ **Installing is not enough — you must run `init`.** `flutter pub get` only downloads this package; it does **not** create any folders or add the architecture libraries. `pub get` has no auto-run hook (unlike npm's `postinstall`), so scaffolding is a deliberate, one-time command (next section). Run it once and both the folder structure **and** the dependency stack land in your project.
 
-After installing, one command scaffolds the recommended folders plus a minimal, **ready-to-run `home` feature** into your project:
+## Scaffold the structure — run this once (required)
+
+`init` does two things in a single command: **(1)** generates the recommended folders plus a minimal, **ready-to-run `home` feature**, and **(2)** adds the architecture libraries to your `pubspec.yaml`.
 
 ```bash
+# With the package added as a dependency:
 dart run flutter_riverpod_kit:init          # creates presentation/home/
 dart run flutter_riverpod_kit:init login    # feature name as an argument (presentation/login/)
+
+# Or activate the command globally and run it from any project:
+dart pub global activate flutter_riverpod_kit
+riverpod_kit init
 ```
 
-What it generates:
+**1. Folders + files it generates**
 
-- `data/data_source`, `data/repository`, `domain/model`, `domain/repository`, `domain/use_case` — empty layer folders (`.gitkeep`)
+- `data/data_source`, `data/repository`, `domain/model`, `domain/repository`, `domain/use_case` — empty layer folders
 - `presentation/<feature>/` — minimal `state` / `action` / `ui_event` / `view_model` (Notifier) / `screen` stubs
 - `di/providers.dart` — a place to declare shared providers
 - `core/routing/route_paths.dart` + `core/routing/router.dart` — a `go_router` config routing `RoutePaths.<feature>` to `<Feature>Screen`
 
-It also runs `flutter pub add go_router` for you. `flutter_riverpod` is already bundled (re-exported), so no `provider` dependency is needed.
+**2. Libraries it adds — mirrored from flutter_basic_kit_library**
 
-> The folder structure is identical to `flutter_provider_kit`/`flutter_bloc_kit`; only the contents of `presentation/` (a `Notifier`-based view_model) differ by state-management choice.
->
-> `pub get` has no auto-run hook (unlike npm's `postinstall`), so this is a one-off command you run once after installing. Existing files are never overwritten.
+`init` reads [flutter_basic_kit_library](https://pub.dev/packages/flutter_basic_kit_library)'s own `pubspec.yaml` at runtime and adds the **same** runtime + dev stack to your app, so the generated architecture works out of the box: routing (`go_router`), DI (`get_it`, `injectable`), networking (`dio`, `retrofit`), model codegen (`freezed`, `json_serializable`, `build_runner`), plus `google_fonts`, `intl`, `flutter_secure_storage`, and more. Because it reads that package directly, the list is a **single source of truth** — when flutter_basic_kit_library adds or bumps a library, `init` picks it up with no change here. `flutter_riverpod` is already bundled (re-exported), so no `provider` dependency of your own is needed.
+
+> The folder structure is identical to `flutter_provider_kit`/`flutter_bloc_kit`; only the contents of `presentation/` (a `Notifier`-based view_model) differ by state-management choice. Existing files are never overwritten, so re-running is safe.
+
+After running `init`, verify the setup once:
+
+```bash
+flutter pub get
+flutter analyze
+dart run build_runner build --delete-conflicting-outputs   # if you use the codegen models
+```
 
 ## Recommended folder structure
 
@@ -135,6 +150,16 @@ See [`example/`](example) for the full working app.
 
 - A NestJS-CLI-style code generator for `repository`/`use_case` CRUD boilerplate (not started, to be discussed separately)
 - Whether to move DI to `get_it`/`injectable`
+
+## Which kit should I use?
+
+All three kits share the **same** folder structure and the same flutter_basic_kit_library dependency stack — pick the one that matches the state-management approach you want, then run its `init`:
+
+- **flutter_riverpod_kit** (this package) — riverpod, read state with `ref.watch()`, `Notifier`-based view models. Good default if you like compile-safe DI via the provider graph.
+- **flutter_provider_kit** — provider + an MVI `MviViewModel` / `onAction` style.
+- **flutter_bloc_kit** — flutter_bloc, explicit `Bloc`/`Event`/`State` separation.
+
+You use one kit per app; they aren't meant to be combined.
 
 ## Related packages
 
