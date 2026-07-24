@@ -39,6 +39,7 @@ Future<void> main(List<String> args) async {
 
   final className = _toPascalCase(feature);
   final camelName = _toCamelCase(feature);
+  final packageName = _readPackageName();
 
   const emptyLayers = [
     'lib/data/data_source',
@@ -60,6 +61,8 @@ Future<void> main(List<String> args) async {
     'lib/di/providers.dart': _diStub(),
     'lib/core/routing/route_paths.dart': _routePathsStub(camelName),
     'lib/core/routing/router.dart': _routerStub(className, camelName, feature),
+    'test/presentation/$feature/${feature}_view_model_test.dart':
+        _testStub(className, camelName, feature, packageName),
   };
 
   final created = <String>[];
@@ -106,6 +109,16 @@ Future<void> main(List<String> args) async {
 
 bool _isValidFeature(String name) =>
     RegExp(r'^[a-z][a-z0-9_]*$').hasMatch(name);
+
+/// Reads the consumer app's package name from its pubspec.yaml so generated
+/// test files can import the scaffolded sources with package: imports.
+String _readPackageName() {
+  final pubspec = File('pubspec.yaml');
+  if (!pubspec.existsSync()) return 'app';
+  final match = RegExp(r'^name:\s*(\S+)', multiLine: true)
+      .firstMatch(pubspec.readAsStringSync());
+  return match?.group(1) ?? 'app';
+}
 
 String _toPascalCase(String snake) => snake
     .split('_')
@@ -454,4 +467,46 @@ final GoRouter router = GoRouter(
     ),
   ],
 );
+''';
+
+String _testStub(String c, String camel, String f, String pkg) =>
+    '''import 'package:flutter_riverpod_kit/flutter_riverpod_kit.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:$pkg/presentation/$f/${f}_action.dart';
+import 'package:$pkg/presentation/$f/${f}_ui_event.dart';
+import 'package:$pkg/presentation/$f/${f}_view_model.dart';
+
+/// Starter tests for ${c}ViewModel. As you add use cases, override their
+/// providers with hand-written Fakes (prefer Fakes over mock libraries):
+///
+/// ```dart
+/// final container = ProviderContainer(overrides: [
+///   getSomethingUseCaseProvider.overrideWithValue(FakeGetSomething()),
+/// ]);
+/// ```
+void main() {
+  group('${c}ViewModel', () {
+    test('initial state is not loading', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final state = container.read(${camel}ViewModelProvider);
+      expect(state.isLoading, false);
+    });
+
+    test('${c}Started emits ShowSnackBar and finishes loading', () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final notifier = container.read(${camel}ViewModelProvider.notifier);
+      final firstEvent = notifier.uiEvent.first;
+
+      notifier.onAction(const ${c}Started());
+
+      expect(await firstEvent, isA<ShowSnackBar>());
+      expect(container.read(${camel}ViewModelProvider).isLoading, false);
+    });
+  });
+}
 ''';
