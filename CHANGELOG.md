@@ -1,3 +1,11 @@
+## 0.0.7
+
+_(요약: global executable(riverpod_kit init) 경로에서 자기 자신·flutter_riverpod가 안 잡히던 문제 수정, flutter_native_splash를 dev_dependencies로)_
+
+* `init` now explicitly adds `flutter_riverpod_kit` and `flutter_riverpod` to the consumer app's `dependencies` before mirroring `flutter_basic_kit_library`. Previously, running via the `riverpod_kit` global executable (as opposed to the documented `dart run flutter_riverpod_kit:init` flow) never added either — generated code imports `package:flutter_riverpod_kit/...`, so this could leave the app with unresolved imports, and also caused `flutter_basic_kit_library` to be unresolvable, silently falling back to a stale built-in dependency list.
+* Moved `flutter_native_splash` out of the fallback runtime list into the fallback dev list, matching the same fix in `flutter_basic_kit_library` 0.0.4.
+* Widened the `flutter_basic_kit_library` constraint to `">=0.0.4 <0.1.0"`.
+
 ## 0.0.6
 
 _(요약: flutter_riverpod 3.x 허용, CHANGELOG 비ASCII 비율 정리)_

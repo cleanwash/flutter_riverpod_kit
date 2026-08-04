@@ -137,6 +137,15 @@ String _toCamelCase(String snake) {
 /// updating it is automatically reflected here. Falls back to a built-in list
 /// if it can't be located (e.g. offline / unusual setups).
 Future<void> _syncBasicKitDependencies() async {
+  // Ensure the kit itself and its core state-management library are direct
+  // dependencies of the consumer app. The documented `dart run
+  // flutter_riverpod_kit:init` flow already requires this (pubspec.yaml must
+  // list flutter_riverpod_kit before running init), but the `riverpod_kit`
+  // global-executable shortcut skips that step entirely. Adding both here
+  // also makes flutter_basic_kit_library resolvable below, instead of
+  // silently falling back to the built-in list.
+  await _addDependencies({'flutter_riverpod_kit': '', 'flutter_riverpod': ''});
+
   final pubspec = _findBasicKitPubspec();
   Map<String, String> runtime;
   Map<String, String> dev;
@@ -237,7 +246,6 @@ const _fallbackRuntime = <String, String>{
   'json_annotation': '',
   'google_fonts': '',
   'curved_navigation_bar': '',
-  'flutter_native_splash': '',
 };
 const _fallbackDev = <String, String>{
   'build_runner': '',
@@ -245,6 +253,7 @@ const _fallbackDev = <String, String>{
   'json_serializable': '',
   'injectable_generator': '',
   'retrofit_generator': '',
+  'flutter_native_splash': '',
 };
 
 /// Adds any of [deps] (name → version constraint; empty = unpinned) not already
